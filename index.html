@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0c1b2f">
+<title>DALFLOOD LAB | 달서구 기후변화 침수 시뮬레이터</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="./styles.css">
+<script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script defer type="module" src="./src/app.js"></script>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+<div class="brand"><div class="logo">≋</div><div><b>DALFLOOD <sup>LAB</sup></b><small>DAEGU CLIMATE INTELLIGENCE</small></div></div>
+<div class="scroll">
+<div class="tiny teal">SCENARIO CONTROL <span>01 / 03</span></div>
+<h1>달서구 <em>도시침수</em><br>시나리오 분석</h1>
+<p class="lead">기후변화에 따른 강우 조건을 설정하고 실제 광역 고도자료를 기반으로 지형성 침수 가능성을 탐색합니다.</p>
+<div class="warning"><b>연구·교육용 모형</b><br>공식 침수예보가 아닙니다. 하수관거·건물·하천 수위와 실측 검증이 반영되지 않았습니다.</div>
+<section><h2><span>01</span> 기후 및 강우 조건</h2>
+<div class="control"><label for="temperature">기온 상승량 <output id="temperature-out">+2.0 °C</output></label><input id="temperature" type="range" min="0" max="5" step=".5" value="2"><div class="ends"><small>0°C</small><small>+5°C</small></div></div>
+<div class="control"><label for="rain">기준 시간당 강우량 <output id="rain-out">80 mm/h</output></label><input id="rain" type="range" min="10" max="200" step="5" value="80"><div class="ends"><small>10 mm/h</small><small>200 mm/h</small></div></div>
+<div class="control"><label for="duration">강우 지속시간 <output id="duration-out">3 시간</output></label><input id="duration" type="range" min="1" max="6" step="1" value="3"><div class="ends"><small>1시간</small><small>6시간</small></div></div>
+<details><summary>고급 가정 조정 <span>⌄</span></summary>
+<div class="control"><label for="sensitivity">강우강도 온도 민감도 <output id="sensitivity-out">7 %/°C</output></label><input id="sensitivity" type="range" min="0" max="12" step="1" value="7"></div>
+<div class="control"><label for="loss">일률 침투·배수 손실 <output id="loss-out">20 mm/h</output></label><input id="loss" type="range" min="0" max="100" step="5" value="20"></div>
+<div class="control"><label for="threshold">침수 판정 수심 <output id="threshold-out">0.10 m</output></label><input id="threshold" type="range" min=".05" max=".5" step=".05" value=".1"></div>
+<p class="tip">민감도와 배수량은 지역 관측값으로 보정되지 않은 가정입니다.</p></details>
+<div class="calc"><div><span>시나리오 강우강도</span><strong id="adjusted-rain">91.6 mm/h</strong></div><div><span>기준 대비 증가율</span><strong id="rain-delta">+14.5%</strong></div></div>
+<button class="primary" id="run" disabled>▶ <span id="run-label">고도자료 불러오는 중</span></button>
+<p class="status" id="loading" role="status" aria-live="polite">고도 자료 로딩 준비 중</p>
+</section>
+<section><h2><span>02</span> 입력 자료 및 정확도</h2>
+<div class="data"><span>지도</span><b>OpenStreetMap</b></div>
+<div class="data"><span>고도 데이터</span><b id="dem-status">연결 중</b></div>
+<div class="data"><span>분석 격자</span><b id="resolution">약 90m</b></div>
+<div class="data"><span>모형</span><b>단순화 2차원 지표유동</b></div>
+<div class="data"><span>좌표 검증</span><b id="geo-status">잠정 좌표</b></div>
+<button id="geocode" class="secondary">OSM 검색으로 지점 좌표 보정</button>
+<p id="geocode-note" class="tip">마커는 드래그할 수 있습니다. 수정 좌표는 브라우저에 저장됩니다. 산 정상은 별도 GPS 확인이 필요합니다.</p>
+</section>
+</div>
+<footer>© OpenStreetMap contributors · Mapzen Terrain Tiles (AWS)</footer>
+</aside>
+<main>
+<header class="topbar"><span><i class="green"></i> DALSEO-GU, DAEGU <span class="muted">/</span> 지형 기반 강우유출 실험</span><span><b class="tag">8 MONITORING SITES</b> <a href="https://github.com/moon-jin-woo/daegu_chimsu" target="_blank" rel="noopener">GitHub ↗</a></span></header>
+<div class="maparea">
+<div id="map" aria-label="대구 달서구 지형성 침수 지도"></div>
+<div class="mapbadge"><i class="green"></i> GEOSPATIAL VIEW <span id="map-layer-status">— 계산 전</span></div>
+<div class="toggles"><label><input id="show-flood" type="checkbox" checked> 예상 침수 레이어</label><label><input id="show-points" type="checkbox" checked> 관측 지점</label></div>
+<div class="legend"><b>MAP LEGEND</b><p><i class="marker white"></i> 수심 기준 미만</p><p><i class="marker red"></i> 기준 초과</p><p><i class="marker gray"></i> 분석 결과 없음</p><p><i class="gradient"></i> 침수심 약 0.1m ~ 1.0m+</p></div>
+<div class="mapnote">파란색은 <strong>단순화 지표유동 모형</strong> 결과이며 공식 침수 예상도가 아닙니다.</div>
+</div>
+<section class="results"><div class="reshead"><div><div class="tiny teal">SIMULATION OUTPUT <span>03 / 03</span></div><h2>관측 지점 분석</h2></div><div class="timecontrol"><label for="time">시뮬레이션 경과시간 <b id="time-out">미계산</b></label><input id="time" type="range" min="0" max="1" value="0" disabled></div></div>
+<div class="kpis">
+<div><small>침수 판정 지점</small><p><b id="flooded-count">—</b> / 8곳</p></div>
+<div><small>최대 격자 침수심</small><p><b id="max-depth">—</b> m</p></div>
+<div><small>침수 예상 격자면적</small><p><b id="flooded-area">—</b> km²</p></div>
+<div><small>계산 상태</small><p><b id="sim-state">대기 중</b></p></div>
+</div>
+<div id="point-list" class="points" aria-live="polite"></div>
+<p class="foot">관측 지점은 대표 좌표 단일 격자에 해당하며 학교·아파트·공원 전체 부지 침수를 의미하지 않습니다. 산 정상 좌표와 일부 지점명은 검증해야 합니다.</p>
+</section>
+</main></div>
+</body></html>
